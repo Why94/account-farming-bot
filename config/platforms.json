@@ -1,0 +1,41 @@
+{
+  "description": "Multi-platform configuration for Account Farming Bot v2.0",
+  "platforms": [
+    {
+      "name": "runway",
+      "register_url": "https://www.runwayml.com/register",
+      "category": "ai",
+      "email_selector": "input[name='email'], input[type='email']",
+      "password_selector": "input[name='password'], input[type='password']",
+      "submit_selector": "button[type='submit'], button:has-text('Sign Up'), button:has-text('Create Account')",
+      "success_indicators": [
+        "verify", "verifikasi", "confirm", "konfirmasi",
+        "check your email", "cek email", "welcome", "selamat datang",
+        "success", "berhasil", "registered", "terdaftar",
+        "almost there", "hampir selesai"
+      ],
+      "error_indicators": [
+        "already exists", "sudah terdaftar", "already registered",
+        "email taken", "email digunakan", "duplicate",
+        "captcha failed", "captcha invalid", "recaptcha failed",
+        "rate limit", "terlalu banyak", "too many requests",
+        "invalid email", "email tidak valid", "blocked", "diblokir"
+      ]
+    },
+    {
+      "name": "default",
+      "register_url": "",
+      "category": "general",
+      "email_selector": "input[type='email']",
+      "password_selector": "input[type='password']",
+      "submit_selector": "button[type='submit']",
+      "success_indicators": [
+        "verify", "confirm", "success", "welcome", "registered"
+      ],
+      "error_indicators": [
+        "already exists", "already registered", "email taken",
+        "duplicate", "captcha failed", "rate limit", "blocked"
+      ]
+    }
+  ]
+}
