@@ -107,6 +107,7 @@ class PlatformConfig:
     error_indicators: List[str] = field(default_factory=list)
     code_selector: str = ""          # where to type the verification code (code-based verify)
     code_submit_selector: str = ""   # button to confirm the code
+    requires_verification: bool = True  # if False, skip email verification entirely
 
 
 @dataclass
@@ -264,6 +265,7 @@ class Config:
                         error_indicators=p.get("error_indicators", []),
                         code_selector=p.get("code_selector", ""),
                         code_submit_selector=p.get("code_submit_selector", ""),
+                        requires_verification=p.get("requires_verification", True),
                     )
                     self.platforms.append(platform)
             except Exception as e:
@@ -311,6 +313,8 @@ class Config:
 
     def get_platform(self, name: str = "") -> Optional[PlatformConfig]:
         """Get platform config by name, or return the first one, or build from global config."""
+        if not name:
+            name = getattr(self, "active_platform_name", "")
         if self.platforms:
             if name:
                 for p in self.platforms:
@@ -323,6 +327,7 @@ class Config:
             name="default",
             register_url=self.target_url,
             category="runway",
+            requires_verification=True,
             success_indicators=[
                 "verify", "verifikasi", "confirm", "konfirmasi",
                 "check your email", "cek email", "welcome", "selamat datang",
@@ -349,7 +354,8 @@ class Config:
         if args.target:
             self.target_url = args.target
         if args.platform:
-            # Switch to a different platform
+            # Switch to a different platform (uses its full config: selectors, verification, etc.)
+            self.active_platform_name = args.platform
             platform = self.get_platform(args.platform)
             if platform and platform.register_url:
                 self.target_url = platform.register_url

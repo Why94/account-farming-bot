@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS stok_akun (
     kategori    VARCHAR(50)  NOT NULL,
     data_akun   TEXT         NOT NULL,
     status      VARCHAR(20)  NOT NULL DEFAULT 'ready',
+    session_data TEXT,
     created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );

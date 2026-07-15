@@ -137,6 +137,27 @@
       "notes": "Seedance/ByteDance WAJIB verifikasi NOMOR HP -> bot tidak bisa handle. Perlu tambah field HP + logika SMS/verifikasi eksternal. Kemungkinan besar GAGAL tanpa modifikasi besar."
     },
     {
+      "name": "mock",
+      "register_url": "http://127.0.0.1:8899/register",
+      "category": "test",
+      "email_selector": "input[type='email']",
+      "password_selector": "input[type='password']",
+      "submit_selector": "button[type='submit']",
+      "success_indicators": [
+        "welcome",
+        "success",
+        "registered",
+        "created"
+      ],
+      "error_indicators": [
+        "already exists",
+        "email taken",
+        "invalid email"
+      ],
+      "requires_verification": false,
+      "notes": "LOCAL TEST ONLY. Point TARGET_URL ke http://127.0.0.1:8899/register dan jalankan mock_signup_server.py. Tidak butuh proxy/CAPTCHA."
+    },
+    {
       "name": "default",
       "register_url": "",
       "category": "general",

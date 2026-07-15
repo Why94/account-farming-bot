@@ -111,6 +111,7 @@ class Farmer:
 
                         if result.success:
                             logger.info(f"✅ #{idx}: {result.email} ({result.status})")
+                            self.db.update_status(result.email, result.status)
                             self.notifier.notify_account_created(result.email, result.status, result.proxy_used or "")
                         else:
                             logger.error(f"❌ #{idx}: {result.email} - {result.error}")
@@ -232,33 +233,39 @@ class Farmer:
                     if success:
                         logger.info(f"✅ Registration OK: {message}")
 
-                        # Email verification
-                        mail_tm_domain = self.email_mgr.get_mail_tm_domain()
-                        if self.platform.code_selector:
-                            # Code-based verification (Kling-style)
-                            self._verify_email_code(
-                                page, email, password,
-                                self.platform.code_selector,
-                                self.platform.code_submit_selector,
-                            )
-                        elif email.endswith("@" + mail_tm_domain):
-                            self._verify_email_mail_tm(page, email, password)
-                        elif "@1sec-mail.com" in email or any(x in email for x in ["@1sec-mail.com"]):
-                            self._verify_email_1sec(page, email)
+                        final_status = "registered"
+                        if self.platform.requires_verification:
+                            # Email verification
+                            mail_tm_domain = self.email_mgr.get_mail_tm_domain()
+                            if self.platform.code_selector:
+                                # Code-based verification (Kling-style)
+                                self._verify_email_code(
+                                    page, email, password,
+                                    self.platform.code_selector,
+                                    self.platform.code_submit_selector,
+                                )
+                            elif email.endswith("@" + mail_tm_domain):
+                                self._verify_email_mail_tm(page, email, password)
+                            elif "@1sec-mail.com" in email or any(x in email for x in ["@1sec-mail.com"]):
+                                self._verify_email_1sec(page, email)
+                            else:
+                                self.db.update_status(email, "pending_verification")
+
+                            if any(s in email for s in ["@mail.tm", "@1sec-mail.com"]):
+                                final_status = "verified"
+
+                            # Feature #21: Auto-login verification
+                            if self.config.notification.telegram_enabled:  # Only if verification passed
+                                self._auto_login_verification(page, context, email, password)
+                            # Feature #22: Profile completion
+                            self._profile_completion(page, email)
                         else:
-                            self.db.update_status(email, "pending_verification")
-
-                        # Feature #21: Auto-login verification
-                        if self.config.notification.telegram_enabled:  # Only if verification passed
-                            self._auto_login_verification(page, context, email, password)
-
-                        # Feature #22: Profile completion
-                        self._profile_completion(page, email)
+                            logger.info("ℹ️ Platform does not require email verification — marking registered")
+                            # Feature #22: Profile completion
+                            self._profile_completion(page, email)
 
                         return AccountResult(
-                            email, password, True,
-                            "verified" if any(s in email for s in ["@mail.tm", "@1sec-mail.com"]) else "registered",
-                            message, proxy_url
+                            email, password, True, final_status, message, proxy_url
                         )
 
                     else:
