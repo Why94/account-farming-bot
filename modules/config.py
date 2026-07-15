@@ -105,6 +105,8 @@ class PlatformConfig:
     submit_selector: str = "button[type='submit']"
     success_indicators: List[str] = field(default_factory=list)
     error_indicators: List[str] = field(default_factory=list)
+    code_selector: str = ""          # where to type the verification code (code-based verify)
+    code_submit_selector: str = ""   # button to confirm the code
 
 
 @dataclass
@@ -260,6 +262,8 @@ class Config:
                         submit_selector=p.get("submit_selector", "button[type='submit']"),
                         success_indicators=p.get("success_indicators", []),
                         error_indicators=p.get("error_indicators", []),
+                        code_selector=p.get("code_selector", ""),
+                        code_submit_selector=p.get("code_submit_selector", ""),
                     )
                     self.platforms.append(platform)
             except Exception as e:

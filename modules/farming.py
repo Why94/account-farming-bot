@@ -234,7 +234,14 @@ class Farmer:
 
                         # Email verification
                         mail_tm_domain = self.email_mgr.get_mail_tm_domain()
-                        if email.endswith("@" + mail_tm_domain):
+                        if self.platform.code_selector:
+                            # Code-based verification (Kling-style)
+                            self._verify_email_code(
+                                page, email, password,
+                                self.platform.code_selector,
+                                self.platform.code_submit_selector,
+                            )
+                        elif email.endswith("@" + mail_tm_domain):
                             self._verify_email_mail_tm(page, email, password)
                         elif "@1sec-mail.com" in email or any(x in email for x in ["@1sec-mail.com"]):
                             self._verify_email_1sec(page, email)
@@ -328,6 +335,40 @@ class Farmer:
                 self.db.update_status(email, "verified")
         except Exception as e:
             logger.error(f"1sec-mail verification error: {e}")
+            self.db.update_status(email, "verification_error")
+
+    def _verify_email_code(self, page, email: str, password: str,
+                           code_selector: str, code_submit_selector: str = "") -> None:
+        """Verify email via numeric code (Kling-style): read code from inbox, type it."""
+        try:
+            code = self.email_mgr.get_verification_code(email, password)
+            if not code:
+                self.db.update_status(email, "verification_timeout")
+                return
+
+            if code_selector:
+                if self.config.browser.keyboard_simulation:
+                    self.browser_mgr.natural_type(page, code_selector, code)
+                else:
+                    page.fill(code_selector, code)
+                self._human_delay(0.5, 1.5, "Type verification code")
+
+            if code_submit_selector:
+                if self.config.browser.mouse_simulation:
+                    self.browser_mgr.mouse_click(page, code_submit_selector)
+                else:
+                    page.click(code_submit_selector)
+                self._human_delay(3, 5, "Submit verification code")
+
+            content = page.content().lower()
+            if any(kw in content for kw in ["verified", "success", "confirmed",
+                                            "activated", "welcome", "dashboard"]):
+                self.db.update_status(email, "verified")
+                logger.info("✅ Email verified via code!")
+            else:
+                self.db.update_status(email, "verification_failed")
+        except Exception as e:
+            logger.error(f"Code verification error: {e}")
             self.db.update_status(email, "verification_error")
 
     # ==================== AUTO LOGIN (feature #21) ====================

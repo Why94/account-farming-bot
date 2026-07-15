@@ -102,7 +102,9 @@
         "blocked",
         "sent you a code"
       ],
-      "notes": "Kling kirim KODE verifikasi (bukan link) ke inbox (dari klingai@kwai.com). Bot saat ini hanya klik LINK verifikasi -> perlu modifikasi _verify_email_* untuk baca & ketik kode."
+      "code_selector": "input[name='code'], input[inputmode='numeric'], input[type='text']",
+      "code_submit_selector": "button[type='submit']",
+      "notes": "Kling kirim KODE verifikasi (bukan link) ke inbox (dari klingai@kwai.com). Bot sekarang support code-based verify via _verify_email_code. Selector code_selector/code_submit_selector perlu diverifikasi lewat devtools."
     },
     {
       "name": "seedance",

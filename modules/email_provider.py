@@ -315,3 +315,86 @@ class EmailManager:
                 return self.check_mail_tm_inbox(email, token, timeout, poll_interval)
 
         return None
+
+    # ==================== CODE EXTRACTION (code-based verify) ====================
+
+    @staticmethod
+    def _extract_code(text: str) -> Optional[str]:
+        """Extract a numeric verification code from email text.
+
+        Prefers a code that appears right after keywords like 'code'/'kode'/
+        'verification', then falls back to a standalone 6-digit / 4-8-digit number.
+        """
+        if not text:
+            return None
+        low = text.lower()
+        patterns = [
+            r'(?:code|kode|verification|verifikasi|pin|otp)[^\d\n]{0,25}?(\d{4,8})',
+            r'(\d{6})',
+            r'(\d{4,8})',
+        ]
+        for pat in patterns:
+            m = re.search(pat, low, re.IGNORECASE)
+            if m:
+                return m.group(1)
+        return None
+
+    def get_verification_code(self, email: str, password: str,
+                              timeout: int = 120, poll_interval: int = 5) -> Optional[str]:
+        """Poll inbox and return a numeric verification code (Kling-style).
+
+        Code-based verification: the platform emails a code that the user must
+        type into a field on the registration page (instead of clicking a link).
+        """
+        domain = email.split("@")[-1]
+        if domain == self.get_mail_tm_domain():
+            token = self._get_mail_tm_token(email)
+            if token:
+                return self._poll_mail_tm_code(email, token, timeout, poll_interval)
+        elif "1sec-mail" in domain:
+            return self._poll_1sec_code(email, timeout, poll_interval)
+        return None
+
+    def _poll_mail_tm_code(self, email: str, token: str, timeout: int, poll_interval: int) -> Optional[str]:
+        headers = {"Authorization": f"Bearer {token}"}
+        start = time.time()
+        while time.time() - start < timeout:
+            try:
+                resp = requests.get("https://api.mail.tm/messages", headers=headers, timeout=10)
+                if resp.status_code == 200:
+                    for msg in resp.json().get("hydra:member", []):
+                        blob = (msg.get("subject", "") + " " +
+                                msg.get("text", "") + " " + msg.get("html", ""))
+                        code = self._extract_code(blob)
+                        if code:
+                            logger.info(f"✅ Verification code found for {email}: {code}")
+                            return code
+            except Exception as e:
+                logger.debug(f"Mail.tm code poll error: {e}")
+            time.sleep(poll_interval)
+        logger.warning(f"⏰ Verification code timeout for {email}")
+        return None
+
+    def _poll_1sec_code(self, email: str, timeout: int, poll_interval: int) -> Optional[str]:
+        parts = email.split("@")
+        if len(parts) != 2:
+            return None
+        login, domain = parts
+        start = time.time()
+        while time.time() - start < timeout:
+            try:
+                resp = requests.get(
+                    f"https://www.1sec-mail.com/api/v1/?action=getMessages&login={login}&domain={domain}",
+                    timeout=10)
+                if resp.status_code == 200:
+                    for msg in resp.json():
+                        blob = msg.get("textBody", "") + " " + msg.get("htmlBody", "")
+                        code = self._extract_code(blob)
+                        if code:
+                            logger.info(f"✅ Verification code found (1sec-mail) for {email}: {code}")
+                            return code
+            except Exception as e:
+                logger.debug(f"1sec-mail code poll error: {e}")
+            time.sleep(poll_interval)
+        logger.warning(f"⏰ 1sec-mail verification code timeout for {email}")
+        return None
