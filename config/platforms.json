@@ -9,18 +9,130 @@
       "password_selector": "input[name='password'], input[type='password']",
       "submit_selector": "button[type='submit'], button:has-text('Sign Up'), button:has-text('Create Account')",
       "success_indicators": [
-        "verify", "verifikasi", "confirm", "konfirmasi",
-        "check your email", "cek email", "welcome", "selamat datang",
-        "success", "berhasil", "registered", "terdaftar",
-        "almost there", "hampir selesai"
+        "verify",
+        "verifikasi",
+        "confirm",
+        "konfirmasi",
+        "check your email",
+        "cek email",
+        "welcome",
+        "selamat datang",
+        "success",
+        "berhasil",
+        "registered",
+        "terdaftar",
+        "almost there",
+        "hampir selesai"
       ],
       "error_indicators": [
-        "already exists", "sudah terdaftar", "already registered",
-        "email taken", "email digunakan", "duplicate",
-        "captcha failed", "captcha invalid", "recaptcha failed",
-        "rate limit", "terlalu banyak", "too many requests",
-        "invalid email", "email tidak valid", "blocked", "diblokir"
+        "already exists",
+        "sudah terdaftar",
+        "already registered",
+        "email taken",
+        "email digunakan",
+        "duplicate",
+        "captcha failed",
+        "captcha invalid",
+        "recaptcha failed",
+        "rate limit",
+        "terlalu banyak",
+        "too many requests",
+        "invalid email",
+        "email tidak valid",
+        "blocked",
+        "diblokir"
       ]
+    },
+    {
+      "name": "leonardo",
+      "register_url": "https://app.leonardo.ai/auth/login",
+      "category": "ai",
+      "email_selector": "input[type='email']",
+      "password_selector": "input[type='password']",
+      "submit_selector": "button[type='submit'], button:has-text('Continue with Email'), button:has-text('Sign Up')",
+      "success_indicators": [
+        "verify",
+        "welcome",
+        "success",
+        "registered",
+        "check your email",
+        "confirm your email",
+        "almost there"
+      ],
+      "error_indicators": [
+        "already exists",
+        "already registered",
+        "email taken",
+        "duplicate",
+        "captcha failed",
+        "rate limit",
+        "too many requests",
+        "invalid email",
+        "blocked",
+        "suspended"
+      ],
+      "notes": "SSO-heavy (Google/Apple/Microsoft). Email signup ada tapi butuh verifikasi + anti-bot kuat. Uji dengan HEADLESS=false dulu."
+    },
+    {
+      "name": "kling",
+      "register_url": "https://klingai.com",
+      "category": "ai",
+      "email_selector": "input[type='email']",
+      "password_selector": "input[type='password']",
+      "submit_selector": "button[type='submit'], button:has-text('Sign Up'), button:has-text('Create')",
+      "success_indicators": [
+        "verify",
+        "verification",
+        "check your email",
+        "enter code",
+        "almost there",
+        "welcome",
+        "success",
+        "registered"
+      ],
+      "error_indicators": [
+        "already exists",
+        "already registered",
+        "email taken",
+        "duplicate",
+        "captcha failed",
+        "rate limit",
+        "too many requests",
+        "invalid email",
+        "blocked",
+        "sent you a code"
+      ],
+      "notes": "Kling kirim KODE verifikasi (bukan link) ke inbox (dari klingai@kwai.com). Bot saat ini hanya klik LINK verifikasi -> perlu modifikasi _verify_email_* untuk baca & ketik kode."
+    },
+    {
+      "name": "seedance",
+      "register_url": "https://seed.bytedance.com/en",
+      "category": "ai",
+      "email_selector": "input[type='email']",
+      "password_selector": "input[type='password']",
+      "submit_selector": "button[type='submit'], button:has-text('Sign Up'), button:has-text('Create')",
+      "success_indicators": [
+        "verify",
+        "verification",
+        "check your email",
+        "welcome",
+        "success",
+        "registered",
+        "studio"
+      ],
+      "error_indicators": [
+        "already exists",
+        "already registered",
+        "email taken",
+        "duplicate",
+        "captcha failed",
+        "rate limit",
+        "too many requests",
+        "invalid email",
+        "blocked",
+        "phone number required"
+      ],
+      "notes": "Seedance/ByteDance WAJIB verifikasi NOMOR HP -> bot tidak bisa handle. Perlu tambah field HP + logika SMS/verifikasi eksternal. Kemungkinan besar GAGAL tanpa modifikasi besar."
     },
     {
       "name": "default",
@@ -30,11 +142,20 @@
       "password_selector": "input[type='password']",
       "submit_selector": "button[type='submit']",
       "success_indicators": [
-        "verify", "confirm", "success", "welcome", "registered"
+        "verify",
+        "confirm",
+        "success",
+        "welcome",
+        "registered"
       ],
       "error_indicators": [
-        "already exists", "already registered", "email taken",
-        "duplicate", "captcha failed", "rate limit", "blocked"
+        "already exists",
+        "already registered",
+        "email taken",
+        "duplicate",
+        "captcha failed",
+        "rate limit",
+        "blocked"
       ]
     }
   ]

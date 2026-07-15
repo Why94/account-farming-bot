@@ -21,8 +21,31 @@ class EmailManager:
 
     def __init__(self, config):
         self.config = config
+        self._mail_tm_domain = None
 
     # ==================== CREATE ====================
+
+    def get_mail_tm_domain(self) -> str:
+        """Return an active Mail.tm domain (fetched from API, cached).
+
+        Mail.tm rotates its free domains, so hardcoding @mail.tm breaks
+        account creation. We fetch the currently active domain instead.
+        """
+        if self._mail_tm_domain:
+            return self._mail_tm_domain
+        try:
+            resp = requests.get("https://api.mail.tm/domains", timeout=10)
+            if resp.status_code == 200:
+                data = resp.json()
+                items = data.get("hydra:member", data.get("member", []))
+                for d in items:
+                    if d.get("isActive"):
+                        self._mail_tm_domain = d.get("domain")
+                        return self._mail_tm_domain
+        except Exception as e:
+            logger.debug(f"Mail.tm domain fetch failed: {e}")
+        self._mail_tm_domain = "mail.tm"
+        return self._mail_tm_domain
 
     def get_email(self) -> Tuple[Optional[str], Optional[str]]:
         """Get a temporary email: tries providers in priority order. Returns (email, password)."""
@@ -63,8 +86,9 @@ class EmailManager:
     def _create_mail_tm(self) -> Tuple[Optional[str], Optional[str]]:
         """Create temporary email via Mail.tm API."""
         try:
+            domain = self.get_mail_tm_domain()
             random_str = ''.join(random.choices(string.ascii_lowercase + string.digits, k=12))
-            email = f"farm{random_str}@mail.tm"
+            email = f"farm{random_str}@{domain}"
             resp = requests.post(
                 "https://api.mail.tm/accounts",
                 json={"address": email, "password": self.config.default_password},
@@ -73,6 +97,8 @@ class EmailManager:
             if resp.status_code in [201, 200]:
                 logger.info(f"✅ Mail.tm created: {email}")
                 return email, self.config.default_password
+            else:
+                logger.debug(f"Mail.tm creation returned {resp.status_code}: {resp.text[:200]}")
         except Exception as e:
             logger.debug(f"Mail.tm creation failed: {e}")
         return None, None
@@ -272,7 +298,7 @@ class EmailManager:
     def check_inbox(self, email: str, password: str, timeout: int = 120,
                     poll_interval: int = 5) -> Optional[str]:
         """Auto-detect provider and check inbox for verification link."""
-        if email.endswith("@mail.tm"):
+        if email.endswith("@" + self.get_mail_tm_domain()):
             token = self._get_mail_tm_token(email)
             if token:
                 return self.check_mail_tm_inbox(email, token, timeout, poll_interval)

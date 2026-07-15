@@ -233,7 +233,8 @@ class Farmer:
                         logger.info(f"✅ Registration OK: {message}")
 
                         # Email verification
-                        if "@mail.tm" in email:
+                        mail_tm_domain = self.email_mgr.get_mail_tm_domain()
+                        if email.endswith("@" + mail_tm_domain):
                             self._verify_email_mail_tm(page, email, password)
                         elif "@1sec-mail.com" in email or any(x in email for x in ["@1sec-mail.com"]):
                             self._verify_email_1sec(page, email)
